@@ -4,6 +4,26 @@ import Link from "next/link";
 import { useFormModal } from "@/context/FormModalContext";
 import { useQuery } from "@tanstack/react-query";
 
+// Search result interfaces
+interface SearchResult {
+  id?: string;
+  _id?: string;
+  name: string;
+  slug: string;
+  type: 'college' | 'course' | 'exam';
+  city?: string;
+  location?: string;
+  banner_url?: string;
+  short_name?: string;
+  exam_type?: string;
+  next_date?: string;
+  [key: string]: any; // Allow additional properties
+}
+
+interface SearchResponse {
+  results: SearchResult[];
+}
+
 // UI matched to reference (glass panel centered, horizontal stat pills, wide search)
 // Content kept SAME
 // Brand colors used for buttons/headings: Blue #5B7DBA, Red #E94133, Yellow #F6C21C
@@ -14,24 +34,44 @@ export default function Hero() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const { openModal } = useFormModal();
 
-  // Search functionality - same as navbar
+  // Search functionality - search colleges, courses, and exams
   const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ["hero-search", searchQuery],
     queryFn: async () => {
-      if (searchQuery.length < 2) return { colleges: [] };
-      const res = await fetch(`/api/colleges?search=${searchQuery}`);
-      return res.json();
+      if (searchQuery.length < 2) return { results: [] };
+      
+      // Search colleges
+      const collegeRes = await fetch(`/api/colleges?search=${searchQuery}`);
+      const colleges = await collegeRes.json();
+      
+      // Search courses (you may need to create this API endpoint)
+      const courseRes = await fetch(`/api/courses?search=${searchQuery}`);
+      const courses = courseRes.ok ? await courseRes.json() : { data: [] };
+      
+      // Search exams (you may need to create this API endpoint)
+      const examRes = await fetch(`/api/exams?search=${searchQuery}`);
+      const exams = examRes.ok ? await examRes.json() : { data: [] };
+      
+      // Combine all results
+      const allResults = [
+        ...(colleges.data?.colleges || []).map((item: any) => ({ ...item, type: 'college' })),
+        ...(courses.data || []).map((item: any) => ({ ...item, type: 'course' })),
+        ...(exams.data || []).map((item: any) => ({ ...item, type: 'exam' }))
+      ];
+      
+      return { results: allResults };
     },
     enabled: searchQuery.length >= 2,
   });
 
-  const colleges = searchResults?.data?.colleges || [];
+  const searchResultsData = searchResults?.results || [];
 
   const backgroundImages = [
-    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80",
-    "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80",
-    "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=1920&q=80",
-    
+    "https://i.pinimg.com/1200x/da/8f/47/da8f47cf9c6db275c88cca998391f085.jpg",
+    "https://images.unsplash.com/20/cambridge.JPG?ixid=M3wxMjA3fDB8MXxzZWFyY2h8NHx8dW5pdmVyc2l0eXxlbnwwfHx8fDE3NzQzMjE3NjJ8MA&ixlib=rb-4.1.0",
+   "https://i.pinimg.com/1200x/87/0a/9f/870a9fd2c38d42373301bd563c4c055b.jpg",
+   "https://i.pinimg.com/1200x/65/6e/87/656e8757b34f7099081d51dbc94d71a1.jpg",
+   "https://i.pinimg.com/1200x/ed/21/1a/ed211af9cf3ac35dbf625c7042a36b4b.jpg"
   ];
 
   useEffect(() => {
@@ -144,29 +184,54 @@ export default function Hero() {
                   <div className="p-4 text-center text-slate-500 text-sm">
                     Searching...
                   </div>
-                ) : colleges.length > 0 ? (
-                  colleges.map((college: any) => (
+                ) : searchResultsData.length > 0 ? (
+                  searchResultsData.map((item: SearchResult) => (
                     <Link
-                      key={college.id}
-                      href={`/colleges/${college.slug}`}
+                      key={`${item.type}-${item.id || item._id}`}
+                      href={
+                        item.type === 'college' ? `/colleges/${item.slug}` :
+                        item.type === 'course' ? `/courses/${item.slug}` :
+                        `/exams/${item.slug}`
+                      }
                       className="block p-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-slate-800 truncate">
-                            {college.name}
-                          </h4>
-                          <p className="text-xs text-slate-500 truncate">
-                            {college.city_ref?.name}, {college.country_ref?.name}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          {/* College Image */}
+                          {item.type === 'college' && item.banner_url && (
+                            <img
+                              src={item.banner_url}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-lg object-cover"
+                            />
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                                item.type === 'college' ? 'bg-blue-100 text-blue-700' :
+                                item.type === 'course' ? 'bg-green-100 text-green-700' :
+                                'bg-orange-100 text-orange-700'
+                              }`}>
+                                {item.type === 'college' ? 'College' : 
+                                 item.type === 'course' ? 'Course' : 'Exam'}
+                              </span>
+                              <h4 className="text-sm font-semibold text-slate-800 truncate">
+                                {item.name}
+                              </h4>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate">
+                              {item.city || item.location || 'Various locations'}
+                            </p>
+                          </div>
                         </div>
-                        <ArrowRight size={16} className="text-slate-400 flex-shrink-0 ml-2" />
+                        <ArrowRight size={16} className="text-slate-400 flex-shrink-0" />
                       </div>
                     </Link>
                   ))
                 ) : (
                   <div className="p-4 text-center text-slate-500 text-sm">
-                    No colleges found for "{searchQuery}"
+                    No results found for "{searchQuery}"
                   </div>
                 )}
               </div>
