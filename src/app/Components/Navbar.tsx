@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu, X, Zap, ArrowRight, ChevronDown, Search } from "lucide-react";
+import { Menu, X, Zap, ArrowRight, ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useFormModal } from "@/context/FormModalContext";
 import Image from "next/image";
 import { useCategories } from "@/hooks/useCategories";
-import { useQuery } from "@tanstack/react-query";
 import { useContactInfo, createMailtoLink, createTelLink } from "@/hooks/useContactInfo";
 
 // Color Theme Definition
@@ -27,13 +26,9 @@ export default function SimpleNavbar() {
   const [collegeTypeOpen, setCollegeTypeOpen] = useState(false);
   const [allCollegesOpen, setAllCollegesOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [othersOpen, setOthersOpen] = useState(false);
   const [mobileCollegesOpen, setMobileCollegesOpen] = useState(false);
   const [mobileCitiesOpen, setMobileCitiesOpen] = useState(false);
-  const [mobileOthersOpen, setMobileOthersOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
   const pathname = usePathname();
   const { openModal } = useFormModal();
 
@@ -42,19 +37,6 @@ export default function SimpleNavbar() {
 
   // Fetch categories from API
   const { data: categories, isLoading: categoriesLoading } = useCategories();
-
-  // Search functionality
-  const { data: searchResults, isLoading: searchLoading } = useQuery({
-    queryKey: ["navbar-search", searchQuery],
-    queryFn: async () => {
-      if (searchQuery.length < 2) return { colleges: [] };
-      const res = await fetch(`/api/colleges?search=${searchQuery}`);
-      return res.json();
-    },
-    enabled: searchQuery.length >= 2,
-  });
-
-  const colleges = searchResults?.data?.colleges || [];
 
   // Ref to store timeout IDs
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -84,28 +66,6 @@ export default function SimpleNavbar() {
     // Set a small delay before closing
     timeoutRef.current = setTimeout(() => {
       setCollegeTypeOpen(false);
-    }, 100);
-  };
-
-  const handleOthersMouseEnter = () => {
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    // Set a small delay before opening
-    timeoutRef.current = setTimeout(() => {
-      setOthersOpen(true);
-    }, 100);
-  };
-
-  const handleOthersMouseLeave = () => {
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    // Set a small delay before closing
-    timeoutRef.current = setTimeout(() => {
-      setOthersOpen(false);
     }, 100);
   };
 
@@ -148,13 +108,9 @@ export default function SimpleNavbar() {
     { name: "Pune Colleges", href: "/colleges/city/pune" },
   ];
 
-
-
-
   const toolsOptions = [
     { name: "Compare Colleges", href: "/compare" },
     { name: "About Us", href: "/about" },
-    { name: "Contact Us", href: "/contact" },
   ];
 
   return (
@@ -196,67 +152,18 @@ export default function SimpleNavbar() {
           
         </Link>
 
-        {/* SEARCH BAR */}
-        <div className="hidden lg:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 focus-within:border-[#007BFF] focus-within:ring-2 focus-within:ring-[#007BFF]/20 transition-all">
-              <Search size={18} className="text-slate-400 mr-2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchResults(e.target.value.length >= 2);
-                }}
-                onFocus={() => setShowSearchResults(searchQuery.length >= 2)}
-                onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                placeholder="Search colleges..."
-                className="flex-1 bg-transparent text-slate-700 placeholder-slate-400 text-sm focus:outline-none"
-              />
-            </div>
-
-            {/* Search Results Dropdown */}
-            {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
-                {searchLoading ? (
-                  <div className="p-4 text-center text-slate-500 text-sm">
-                    Searching...
-                  </div>
-                ) : colleges.length > 0 ? (
-                  colleges.map((college: any) => (
-                    <Link
-                      key={college._id}
-                      href={`/colleges/${college.slug}`}
-                      className="flex items-center gap-3 p-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
-                    >
-                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
-                        <img
-                          src={college.banner_url || "/api/placeholder/40/40"}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-700 text-sm truncate">
-                          {college.name}
-                        </p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1">
-                          {college.city}
-                        </p>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-slate-500 text-sm">
-                    No colleges found for "{searchQuery}"
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
         {/* DESKTOP NAV - DROPDOWNS */}
         <div className="hidden lg:flex items-center gap-1">
+
+          {/* Home Link */}
+          <Link
+            href="/"
+            className={`px-5 py-3 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all ${
+              pathname === "/" ? "text-[#007BFF] bg-[#E3F2FD]" : "text-slate-700 hover:text-white hover:bg-[#007BFF]"
+            }`}
+          >
+            Home
+          </Link>
 
           {/* Colleges Dropdown */}
           <div
@@ -311,6 +218,16 @@ export default function SimpleNavbar() {
             Blogs
           </Link>
 
+          {/* Contact Us */}
+          <Link
+            href="/contact"
+            className={`px-5 py-3 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all ${
+              pathname?.includes("/contact") ? "text-[#007BFF] bg-[#E3F2FD]" : "text-slate-700 hover:text-white hover:bg-[#007BFF]"
+            }`}
+          >
+            Contact Us
+          </Link>
+
           {/* Tools Dropdown */}
           <div
             className="relative"
@@ -342,28 +259,6 @@ export default function SimpleNavbar() {
             )}
           </div>
 
-          {/* Others Dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={handleOthersMouseEnter}
-            onMouseLeave={handleOthersMouseLeave}
-          >
-          
-
-              {/* {othersOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border-2 border-slate-300 rounded-xl shadow-xl z-50">
-                  {othersOptions.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="block px-5 py-4 text-sm text-slate-700 hover:bg-[#007BFF] hover:text-white hover:rounded-lg transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-              </div>
-            )} */}
-          </div>
         </div>
 
         {/* ACTION BUTTONS */}
@@ -421,15 +316,6 @@ export default function SimpleNavbar() {
             >
               Updates
             </Link>
-
-            <Link
-              href="/contact"
-              onClick={() => setIsOpen(false)}
-              className={`text-base sm:text-lg font-bold tracking-tight py-3 px-4 rounded-lg transition-colors ${pathname?.includes("/contact") ? "text-[#007BFF] bg-[#E3F2FD]" : "text-slate-700 hover:bg-slate-50"
-                }`}
-            >
-              Contact
-            </Link>
           </div>
 
           {/* Colleges Section */}
@@ -486,25 +372,6 @@ export default function SimpleNavbar() {
                     {item.name.replace(' Colleges', '')}
                   </Link>
                 ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Others Section */}
-          <div className="border-t border-slate-100 pt-4">
-            <button
-              onClick={() => setMobileOthersOpen(!mobileOthersOpen)}
-              className="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-slate-50 transition-colors"
-            >
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Others</h3>
-              <ChevronDown
-                size={16}
-                className={`text-slate-400 transition-transform duration-200 ${mobileOthersOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            <div className={`overflow-hidden transition-all duration-300 ${mobileOthersOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className="flex flex-col gap-1 pt-2">
-               
               </div>
             </div>
           </div>

@@ -1,125 +1,219 @@
-import React from "react";
-import { ArrowRight, CheckCircle2, Star, GraduationCap, Building2, BookOpen } from "lucide-react";
-import Typewriter from "typewriter-effect";
+import React, { useState, useEffect, useRef } from "react";
+import { ArrowRight, CheckCircle2, Star, GraduationCap, Building2, BookOpen, Search, ChevronLeft, ChevronRight, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useFormModal } from "@/context/FormModalContext";
+import { useQuery } from "@tanstack/react-query";
 
+// UI matched to reference (glass panel centered, horizontal stat pills, wide search)
+// Content kept SAME
+// Brand colors used for buttons/headings: Blue #5B7DBA, Red #E94133, Yellow #F6C21C
 
-const Hero: React.FC = () => {
-
-
+export default function Hero() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const { openModal } = useFormModal();
 
+  // Search functionality - same as navbar
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
+    queryKey: ["hero-search", searchQuery],
+    queryFn: async () => {
+      if (searchQuery.length < 2) return { colleges: [] };
+      const res = await fetch(`/api/colleges?search=${searchQuery}`);
+      return res.json();
+    },
+    enabled: searchQuery.length >= 2,
+  });
+
+  const colleges = searchResults?.data?.colleges || [];
+
+  const backgroundImages = [
+    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=1920&q=80",
+    
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [backgroundImages.length]);
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + backgroundImages.length) % backgroundImages.length);
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+  };
+
+  const statistics = [
+    { number: "6000+", label: "Institutions", icon: Building2 },
+    { number: "200+", label: "Exams", icon: BookOpen },
+    { number: "200+", label: "Online Courses", icon: GraduationCap },
+    { number: "200+", label: "Courses", icon: Star }
+  ];
 
   return (
-    <section className="relative min-h-[90vh] flex items-center bg-[#12141D] text-[#F8FAFC] overflow-hidden pt-16">
-      {/* Background Ambient Glow - Using Primary Blue */}
-      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-[#007BFF]/10 rounded-full blur-[120px] pointer-events-none" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Slider */}
+      <div className="absolute inset-0">
+        {backgroundImages.map((image, index) => (
+          <img
+            key={index}
+            src={image}
+            alt={`College Campus ${index + 1}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              index === currentImageIndex ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-black/45" />
+      </div>
 
-      <div className="container mx-auto px-6 lg:px-16 grid lg:grid-cols-2 gap-16 items-center relative z-10">
+      {/* Arrows */}
+      <button
+        onClick={handlePreviousImage}
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur p-3 rounded-full text-white hover:bg-white/30 z-20"
+      >
+        <ChevronLeft size={22} />
+      </button>
+      <button
+        onClick={handleNextImage}
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur p-3 rounded-full text-white hover:bg-white/30 z-20"
+      >
+        <ChevronRight size={22} />
+      </button>
 
-        {/* LEFT COLUMN: INDIAN CONTEXT */}
-        <div className="space-y-6">
-          <div className="inline-flex  items-center mt-5 gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">AICTE, UGC & NMC Recognized</span>
-          </div>
+      {/* Center Glass Panel */}
+      <div className="relative z-10 w-full px-4">
+        <div className="max-w-4xl mx-auto bg-white/8 backdrop-blur-md border border-white/20 rounded-2xl p-5 md:p-7 shadow-2xl">
 
-          <h1 className="text-4xl lg:text-6xl font-bold leading-tight tracking-tight">
-            Your Future <br />
-            <span className="text-[#007BFF]">
-              <Typewriter
-                options={{
-                  strings: ['In Top IITs & NITs.', 'In Leading IIMs.', 'In Top Medical Govt.'],
-                  autoStart: true,
-                  loop: true,
-                }}
-              />
-            </span>
+          {/* Heading */}
+          <h1 className="text-xl md:text-3xl font-bold text-white text-center mb-2">
+            Explore Top Colleges, Exams, Results & More
           </h1>
 
-          <p className="text-[#94A3B8] text-sm md:text-base max-w-sm leading-relaxed">
-            Expert guidance for <span className="text-white font-medium">Engineering, Management, and Medical</span> admissions across India. Secure your seat in the country's premier institutions.
+          <p className="text-white/85 text-center mb-5 text-xs md:text-sm">
+            Explore 200+ Complete admission guidance for Engineering, Management, and Medical across India
           </p>
 
-          <div className="flex flex-wrap gap-4 pt-2">
+          {/* Horizontal Stat Pills */}
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-5">
+            {statistics.map((stat, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 bg-white/15 border border-white/25 backdrop-blur px-4 py-2 rounded-full text-white"
+              >
+                <stat.icon size={16} />
+                <span className="font-semibold">{stat.number}</span>
+                <span className="text-white/80 text-sm">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Wide Search Bar */}
+          <div className="max-w-2xl mx-auto mb-5 relative">
+            <div className="flex items-center bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="pl-4 text-gray-400">
+                <Search size={18} />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchResults(e.target.value.length >= 2);
+                }}
+                onFocus={() => setShowSearchResults(searchQuery.length >= 2)}
+                onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+                placeholder="Search Colleges, Courses, Exams, Questions and Article"
+                className="flex-1 px-3 py-3 outline-none text-gray-700 text-sm"
+              />
+              <button className="px-8 py-3 font-semibold text-white text-sm" style={{ backgroundColor: '#007BFF' }}>
+                Search
+              </button>
+            </div>
+
+            {/* Search Results Dropdown */}
+            {showSearchResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                {searchLoading ? (
+                  <div className="p-4 text-center text-slate-500 text-sm">
+                    Searching...
+                  </div>
+                ) : colleges.length > 0 ? (
+                  colleges.map((college: any) => (
+                    <Link
+                      key={college.id}
+                      href={`/colleges/${college.slug}`}
+                      className="block p-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-slate-800 truncate">
+                            {college.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 truncate">
+                            {college.city_ref?.name}, {college.country_ref?.name}
+                          </p>
+                        </div>
+                        <ArrowRight size={16} className="text-slate-400 flex-shrink-0 ml-2" />
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-slate-500 text-sm">
+                    No colleges found for "{searchQuery}"
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3 justify-center mb-5">
             <Link href="/colleges">
-              <button className="bg-[#007BFF] hover:bg-[#0056CC] text-white px-8 py-3.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 group shadow-lg shadow-[#007BFF]/20">
+              <button
+                className="text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 shadow-lg"
+                style={{ backgroundColor: '#007BFF' }}
+              >
                 Find Top Colleges
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={16} />
               </button>
             </Link>
-            <button onClick={() => openModal()} className="border border-white/10 hover:bg-white/5 text-white px-8 py-3.5 rounded-xl text-sm font-bold transition-all">
+
+            <button
+              onClick={() => openModal()}
+              className="px-6 py-3 rounded-lg font-semibold border text-white"
+              style={{ borderColor: '#F6C21C' }}
+            >
               Counseling 2026
             </button>
           </div>
 
-          {/* Value Props for Indian Students */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 pt-4">
+          {/* Value Props */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t border-white/20">
             {["Entrance Support", "Rank Prediction", "Direct Admissions", "Placement Stats"].map((text) => (
-              <div key={text} className="flex items-center gap-2 text-[12px] text-[#94A3B8] font-medium">
-                <CheckCircle2 size={14} className="text-[#FFC107]" />
+              <div key={text} className="flex items-center gap-2 text-xs md:text-sm text-white/90">
+                <CheckCircle2 size={14} style={{ color: '#F6C21C' }} />
                 {text}
               </div>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* RIGHT COLUMN: IMPROVED VISUAL STACK */}
-        <div className="relative flex justify-center items-center h-full">
-          {/* Background Decorative Frame */}
-          <div className="absolute w-[85%] aspect-[3/4] border border-white/5 rounded-[40px] rotate-6 translate-x-4 -z-10" />
+      {/* Floating Call */}
+  
 
-          {/* Main Pinterest Image Card - Student in Indian Campus setting */}
-          <div className="relative w-full max-w-[320px] aspect-[4/5] rounded-[40px] overflow-hidden border-[6px] border-[#1E212B] shadow-2xl z-20 transform -rotate-2 hover:rotate-0 transition-transform duration-500">
-            <img
-              src="https://i.pinimg.com/736x/f3/5d/12/f35d121e8d8d8b96b23f9b5b8829e4e0.jpg"
-              alt="Indian Engineering & Management Students"
-              className="w-full h-full object-cover"
-            />
-            {/* Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#12141D] via-transparent to-transparent opacity-70" />
-
-            <div className="absolute bottom-6 left-6 right-6">
-              <div className="flex items-center gap-2 mb-1">
-                <Building2 size={14} className="text-[#FFC107]" />
-                <span className="text-[10px] font-bold uppercase text-[#FFC107]">Pan India Network</span>
-              </div>
-              <p className="text-sm font-semibold text-white">Connecting students to 500+ Top Colleges</p>
-            </div>
-          </div>
-
-          {/* Floating Course Categories */}
-          <div className="absolute -left-12 top-1/4 bg-[#1E212B]/80 border border-white/10 p-5 rounded-3xl shadow-2xl z-30 backdrop-blur-md transform -translate-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#007BFF]/20 flex items-center justify-center text-[#007BFF] font-bold text-xs">B.T</div>
-                <span className="text-[11px] font-bold">B.Tech / JEE</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#FFC107]/20 flex items-center justify-center text-[#FFC107] font-bold text-xs">MB</div>
-                <span className="text-[11px] font-bold">MBA / CAT</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#FF6B35]/20 flex items-center justify-center text-[#FF6B35] font-bold text-xs">MD</div>
-                <span className="text-[11px] font-bold">MBBS / NEET</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Placement Badge - Bottom Right */}
-          <div className="absolute -right-6 bottom-8 bg-[#007BFF] p-6 rounded-[2.5rem] shadow-2xl z-30 flex flex-col items-center justify-center text-white transform rotate-6 hover:rotate-0 transition-all cursor-default">
-            <span className="text-2xl font-black leading-none">45LPA+</span>
-            <span className="text-[9px] uppercase tracking-tighter font-bold opacity-90 mt-1 text-center">Highest Placement <br /> Guidance</span>
-          </div>
-
-          {/* Ambient Glow behind image */}
-          <div className="absolute w-64 h-64 bg-[#FFC107]/20 rounded-full blur-[80px] -z-10" />
-        </div>
-
+      {/* Bottom Location */}
+      <div className="absolute bottom-6 left-6 text-white/90 text-sm flex items-center gap-2 z-20">
+        <MapPin size={16} />
+        IIT Delhi - Indian Institute of Technology
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

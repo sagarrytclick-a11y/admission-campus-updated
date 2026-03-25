@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { GraduationCap, Clock, Banknote, FileText, ArrowRight, Sparkles, CalendarDays, MapPin } from 'lucide-react';
+import { GraduationCap, Clock, Banknote, FileText, ArrowRight, Sparkles, CalendarDays, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 const COLLEGES_PER_PAGE = 6;
@@ -64,6 +64,18 @@ const UniversityCard = ({ name, image, slug, country = "India", ranking, fees, d
    UPCOMING EXAMS SECTION (SIMPLE)
 ======================= */
 const UpcomingExamsSection = ({ exams, loading }: { exams: any[]; loading: boolean }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleNext = () => {
+    const maxIndex = Math.max(0, exams.length - 3);
+    setCurrentIndex(prev => (prev >= maxIndex ? 0 : prev + 1));
+  };
+
+  const handlePrev = () => {
+    const maxIndex = Math.max(0, exams.length - 3);
+    setCurrentIndex(prev => (prev <= 0 ? maxIndex : prev - 1));
+  };
+
   return (
     <section className="py-16 bg-white border-t border-slate-100">
       <div className="max-w-7xl mx-auto px-6 lg:px-24">
@@ -76,22 +88,72 @@ const UpcomingExamsSection = ({ exams, loading }: { exams: any[]; loading: boole
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-slate-50 rounded-lg animate-pulse" />
-            ))}
+          <div className="flex justify-center items-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {exams.slice(0, 8).map((exam, idx) => (
-              <Link key={idx} href={`/exams/${exam.slug}`} className="group p-5 border border-slate-100 rounded-lg bg-[#F8FAFC] hover:border-[#007BFF] transition-colors">
-                <h3 className="font-semibold text-[#1E293B] mb-1 group-hover:text-[#007BFF]">{exam.short_name || exam.name}</h3>
-                <p className="text-[10px] text-[#64748B] font-medium mb-3 uppercase tracking-wider">Exam: {exam.next_date || "TBA"}</p>
-                <div className="text-[#007BFF] text-xs font-bold flex items-center gap-1">
-                  Details <ArrowRight size={12} />
-                </div>
-              </Link>
-            ))}
+          <div className="relative">
+            <div className="overflow-hidden">
+              <div 
+                className="flex gap-4 transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+              >
+                {exams.slice(0, 8).map((exam, idx) => (
+                  <Link key={idx} href={`/exams/${exam.slug}`} className="group block overflow-hidden rounded-lg border border-blue-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md flex-shrink-0 w-64">
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        {/* Exam Logo */}
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold text-blue-600">
+                            {(exam.short_name || exam.name || '').substring(0, 6).toUpperCase()}
+                          </span>
+                        </div>
+                        {/* Online Tag */}
+                        <span className="inline-flex items-center rounded-full border border-blue-300 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                          Online
+                        </span>
+                      </div>
+                      {/* Exam Name */}
+                      <h3 className="text-lg font-bold text-[#1E293B] mb-1 group-hover:text-blue-600">
+                        {exam.short_name || exam.name}
+                      </h3>
+                      {/* Exam Type/Category */}
+                      {exam.type && (
+                        <p className="text-xs text-slate-500 mb-2">{exam.type}</p>
+                      )}
+                      {/* Exam Date */}
+                      <p className="text-sm text-slate-600">Exam Date</p>
+                      <p className="text-sm font-bold text-blue-600">
+                        {exam.next_date || "TBA"}
+                      </p>
+                    </div>
+                    {/* Footer */}
+                    <div className="bg-blue-600 px-4 py-3 flex items-center justify-between">
+                      <span className="text-white text-sm font-medium">Exam Info</span>
+                      <ArrowRight size={16} className="text-white" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Slider Arrows */}
+            {exams.length > 3 && (
+              <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-2 pointer-events-none">
+                <button 
+                  onClick={handlePrev}
+                  className="w-8 h-8 rounded-full bg-white shadow-lg border border-blue-200 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all pointer-events-auto"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  onClick={handleNext}
+                  className="w-8 h-8 rounded-full bg-white shadow-lg border border-blue-200 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all pointer-events-auto"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

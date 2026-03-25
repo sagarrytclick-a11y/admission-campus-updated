@@ -2,11 +2,10 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { useFormModal } from "@/context/FormModalContext";
 import { useCategories } from "@/hooks/useCategories";
 import Image from 'next/image';
-
 
 const ExploreTopCourses = () => {
   const { openModal } = useFormModal();
@@ -49,11 +48,15 @@ const ExploreTopCourses = () => {
   return (
     <div className="bg-white py-12 sm:py-16 px-4 sm:px-6 lg:px-24 max-w-7xl mx-auto font-sans text-[#1E293B]">
 
-      {/* Simple Header - Same as City Slider */}
-      <div className="mb-8 sm:mb-12">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 text-[#1E293B]">Explore Courses</h2>
-        <p className="text-[#64748B] text-sm">
-          Select a category to find the best institutions and entrance exam guides.
+      {/* Header - Same as College Section */}
+      <div className="mb-12">
+        <div className="flex items-center gap-2 text-[#007BFF] mb-3">
+          <Sparkles size={16} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Course Categories</span>
+        </div>
+        <h2 className="text-3xl text-[#1E293B] font-bold tracking-tight mb-3">Top Courses in India 2026</h2>
+        <p className="text-[#64748B] text-sm max-w-2xl font-medium leading-relaxed">
+          Select a category to find the best institutions and entrance exam guides for your academic journey.
         </p>
       </div>
 
@@ -88,7 +91,7 @@ const ExploreTopCourses = () => {
       {/* Simple Card Grid */}
       {!isLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {transformedCategories.map((item, index) => (
+          {transformedCategories.map((item: any, index: number) => (
             <Link key={index} href={item.href} className="group">
               <div className="border-2 border-slate-300 rounded-xl overflow-hidden transition-all duration-300 hover:border-[#007BFF] hover:shadow-lg hover:shadow-[#007BFF]/20 bg-white">
 
