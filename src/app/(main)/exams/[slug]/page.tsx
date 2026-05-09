@@ -107,7 +107,7 @@ const ExamPage = () => {
   if (!exam) return <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center"> <h2 className="text-2xl font-bold">Exam not found</h2><Link href="/exams"><Button>Back to Exams</Button></Link></div>
 
   return (
-    <div className="min-h-screen bg-linear-to-br py-16 from-slate-50 to-white">
+    <div className="min-h-screen bg-linear-to-br  from-slate-50 to-white">
       {/* 1. Hero Section - Minimal & Clean */}
       <header className="bg-linear-to-br from-[#6366F1] to-[#4F46E5] text-white py-16 md:py-24 relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">

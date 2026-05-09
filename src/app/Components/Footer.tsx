@@ -156,7 +156,7 @@ const Footer = () => {
       {isScrolled && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 w-11 h-11 bg-[#007BFF] text-white rounded-full flex items-center justify-center shadow-xl hover:bg-[#007BFF] hover:-translate-y-1 transition-all z-50 active:scale-90"
+          className="fixed bottom-13 left-8 w-11 h-11 bg-[#007BFF] text-white rounded-full flex items-center justify-center shadow-xl hover:bg-[#007BFF] hover:-translate-y-1 transition-all z-50 active:scale-90"
         >
           <ChevronUp size={20} />
         </button>

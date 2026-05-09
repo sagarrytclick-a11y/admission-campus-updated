@@ -193,11 +193,6 @@ const BlogDetailPage = () => {
                 Read More Articles
               </Button>
             </Link>
-            
-            <Button variant="outline" className="border-slate-200 text-slate-600 hover:bg-slate-50 px-6 py-3 rounded-lg font-medium transition-colors">
-              <Share2 size={16} className="mr-2" />
-              Share Article
-            </Button>
           </div>
         </div>
       </div>

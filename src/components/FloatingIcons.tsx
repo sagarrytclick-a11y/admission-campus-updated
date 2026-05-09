@@ -15,7 +15,7 @@ export function FloatingIcons({ onNotificationClick }: FloatingIconsProps) {
   }
 
   return (
-    <div className="fixed bottom-20 right-6 flex flex-col gap-4 z-2000">
+    <div className="fixed bottom-10 right-6 flex flex-col gap-4 z-2000">
       {/* WhatsApp Icon */}
       <button
         onClick={handleWhatsAppClick}

@@ -240,7 +240,7 @@ if (isLoading) {
   }
 
   return (
-    <div className="min-h-screen py-16 bg-white">
+    <div className="min-h-screen  bg-white">
       {/* Hero Section */}
       <div className="bg-linear-to-br from-[#F8FAFC] to-white py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
