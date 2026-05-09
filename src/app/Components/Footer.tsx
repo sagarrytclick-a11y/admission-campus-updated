@@ -88,9 +88,19 @@ const Footer = () => {
                 <Mail size={16} className="text-[#007BFF]" />
                 <span className="lowercase">{emails.info}</span>
               </a>
-              <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-[#007BFF] shrink-0 mt-1" />
-                <span className="leading-snug">{address.full}</span>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <MapPin size={16} className="text-[#007BFF] shrink-0 mt-1" />
+                  <div className="space-y-1">
+                    <span className="leading-snug block">{address.office}</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin size={16} className="text-[#007BFF] shrink-0 mt-1" />
+                  <div className="space-y-1">
+                    <span className="leading-snug block">Admission Campus 2nd floor opposite Hotel Golden tulip 4 station road Hussainganj, lucknow 226001.</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

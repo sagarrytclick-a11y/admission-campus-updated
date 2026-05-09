@@ -75,9 +75,9 @@ export const SITE_IDENTITY: SiteIdentity = {
   },
   contact: {
     phone: {
-      display: "+91-9220606908",
-      raw: "+919625271104",
-      additional: ["+91-9220606908", "+91-9625271104"]
+      display: "+91-9999616911",
+      raw: "+919999616911",
+      additional: ["+91-9999616911", "+91-9999616911"]
     },
     email: {
       support: "Info@admissioncampus.in",
@@ -85,13 +85,13 @@ export const SITE_IDENTITY: SiteIdentity = {
       general: "Info@admissioncampus.in",
     },
     address: {
-      office: "S0-1, Geniefolks Building (2nd Floor), Block A, Plot No. A-28, Sector 4, Noida, Uttar Pradesh - 201301",
+      office: "24th Floor, Admission campus, Silver Wing, Wave One, Office No, 20/21, Sector 18, Noida",
       city: "Noida",
       country: "Uttar Pradesh",
       mapLink: "https://goo.gl/maps/example",
     },
     socials: {
-      whatsapp: "https://wa.me/9625271104",
+      whatsapp: "https://wa.me/9999616911",
       instagram: "https://instagram.com/admissioncampus",
       linkedin: "https://linkedin.com/company/admissioncampus",
     },

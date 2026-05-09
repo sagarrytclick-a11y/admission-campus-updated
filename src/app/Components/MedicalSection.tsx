@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Stethoscope, Heart, Brain, Bone, Eye, Baby, Activity, Pill } from 'lucide-react'
 import { useFormModal } from '@/context/FormModalContext'
 
@@ -72,60 +73,56 @@ interface College {
 
 export default function MedicalSection() {
   const [activeTab, setActiveTab] = useState('colleges')
-  const [colleges, setColleges] = useState<College[]>([])
-  const [loading, setLoading] = useState(true)
   const { openModal } = useFormModal()
 
-  useEffect(() => {
-    fetchMedicalColleges()
-  }, [])
-
-  const fetchMedicalColleges = async () => {
-    try {
-      setLoading(true)
-      
-      // Fetch medical colleges from your local API
-      const response = await fetch('/api/colleges?category=medical&limit=6&page=1')
-      
-      if (response.ok) {
-        const result = await response.json()
+  // Fetch medical colleges using React Query
+  const { data: colleges = [], isLoading, error } = useQuery<College[]>({
+    queryKey: ['medicalColleges'],
+    queryFn: async () => {
+      try {
+        // Fetch medical colleges from your local API
+        const response = await fetch('/api/colleges?category=medical&limit=6&page=1')
         
-        if (result.success && result.data?.colleges && result.data.colleges.length > 0) {
-          // Transform the API data to match our format - take exactly 6 colleges
-          const transformedData = result.data.colleges.slice(0, 6).map((college: any, index: number) => ({
-            name: college.name || `Medical College ${index + 1}`,
-            ranking: college.ranking?.country_ranking ? `#${college.ranking.country_ranking}` : college.legacy_ranking ? `#${college.legacy_ranking}` : `#${index + 1}`,
-            neetScore: college.fees_structure?.courses?.[0]?.annual_tuition_fee ? `${college.fees_structure.courses[0].annual_tuition_fee}` : `${720 - index * 5}+`,
-            image: college.banner_url || `/Hero/hero-${(index % 3) + 1}.jpg`
-          }))
-          setColleges(transformedData)
-          console.log(`Successfully fetched ${transformedData.length} medical colleges`)
-          console.log('Sample college data:', transformedData[0])
+        if (response.ok) {
+          const result = await response.json()
+          
+          if (result.success && result.data?.colleges && result.data.colleges.length > 0) {
+            // Transform the API data to match our format - take exactly 6 colleges
+            const transformedData = result.data.colleges.slice(0, 6).map((college: any, index: number) => ({
+              name: college.name || `Medical College ${index + 1}`,
+              ranking: college.ranking?.country_ranking ? `#${college.ranking.country_ranking}` : college.legacy_ranking ? `#${college.legacy_ranking}` : `#${index + 1}`,
+              neetScore: college.fees_structure?.courses?.[0]?.annual_tuition_fee ? `${college.fees_structure.courses[0].annual_tuition_fee}` : `${720 - index * 5}+`,
+              image: college.banner_url || `/Hero/hero-${(index % 3) + 1}.jpg`
+            }))
+            console.log(`Successfully fetched ${transformedData.length} medical colleges`)
+            console.log('Sample college data:', transformedData[0])
+            return transformedData
+          } else {
+            console.log('No medical colleges found, using fallback data')
+            throw new Error('No medical colleges found in API response')
+          }
         } else {
-          console.log('No medical colleges found, using fallback data')
-          throw new Error('No medical colleges found in API response')
+          throw new Error(`API request failed with status: ${response.status}`)
         }
-      } else {
-        throw new Error(`API request failed with status: ${response.status}`)
+      } catch (error) {
+        console.error('Error fetching medical colleges from local API:', error)
+        
+        // Fallback to hardcoded medical college data
+        const fallbackData = [
+          { name: "AIIMS Delhi", ranking: "#1", neetScore: "720+", image: "/Hero/hero-1.jpg" },
+          { name: "PGIMER Chandigarh", ranking: "#2", neetScore: "715+", image: "/Hero/hero-2.jpg" },
+          { name: "CMC Vellore", ranking: "#3", neetScore: "710+", image: "/Hero/hero-3.jpg" },
+          { name: "JIPMER Puducherry", ranking: "#4", neetScore: "705+", image: "/Hero/hero-1.jpg" },
+          { name: "KMC Manipal", ranking: "#5", neetScore: "700+", image: "/Hero/hero-2.jpg" },
+          { name: "GMC Mumbai", ranking: "#6", neetScore: "695+", image: "/Hero/hero-3.jpg" }
+        ]
+        console.log('Using fallback medical college data')
+        return fallbackData
       }
-    } catch (error) {
-      console.error('Error fetching medical colleges from local API:', error)
-      
-      // Fallback to hardcoded medical college data
-      const fallbackData = [
-        { name: "AIIMS Delhi", ranking: "#1", neetScore: "720+", image: "/Hero/hero-1.jpg" },
-        { name: "PGIMER Chandigarh", ranking: "#2", neetScore: "715+", image: "/Hero/hero-2.jpg" },
-        { name: "CMC Vellore", ranking: "#3", neetScore: "710+", image: "/Hero/hero-3.jpg" },
-        { name: "JIPMER Puducherry", ranking: "#4", neetScore: "705+", image: "/Hero/hero-1.jpg" },
-        { name: "KMC Manipal", ranking: "#5", neetScore: "700+", image: "/Hero/hero-2.jpg" },
-        { name: "GMC Mumbai", ranking: "#6", neetScore: "695+", image: "/Hero/hero-3.jpg" }
-      ]
-      setColleges(fallbackData)
-      console.log('Using fallback medical college data')
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (garbage collection time)
+  })
 
   return (
     <div className="py-16 px-4 bg-gray-50">
@@ -199,9 +196,25 @@ export default function MedicalSection() {
 
         {activeTab === 'colleges' && (
           <div>
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="text-gray-500">Loading medical colleges...</div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((index) => (
+                  <div key={index} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-pulse">
+                    {/* Skeleton Image */}
+                    <div className="h-48 bg-gray-200 relative">
+                      <div className="absolute top-3 right-3">
+                        <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Skeleton Content */}
+                    <div className="p-6 space-y-3">
+                      <div className="h-6 bg-gray-300 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-8 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
