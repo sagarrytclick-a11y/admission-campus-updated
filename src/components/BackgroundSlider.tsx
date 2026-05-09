@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 interface BackgroundSliderProps {
   children: React.ReactNode
@@ -8,7 +8,8 @@ interface BackgroundSliderProps {
 
 const BackgroundSlider: React.FC<BackgroundSliderProps> = ({ children }) => {
   const [currentSlide, setCurrentSlide] = useState(0)
-
+  const [isVisible, setIsVisible] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   //baground change
 
@@ -16,30 +17,47 @@ const BackgroundSlider: React.FC<BackgroundSliderProps> = ({ children }) => {
     {
       id: 1,
       gradient: 'from-admission-yellow/20 via-orange-400/20 to-yellow-500/20',
-      pattern: 'bg-gradient-to-br'
+      pattern: 'bg-linear-to-br'
     },
     {
       id: 2,
       gradient: 'from-blue-600/10 via-indigo-500/10 to-purple-600/10',
-      pattern: 'bg-gradient-to-tr'
+      pattern: 'bg-linear-to-tr'
     },
     {
       id: 3,
       gradient: 'from-green-500/10 via-emerald-400/10 to-teal-500/10',
-      pattern: 'bg-gradient-to-bl'
+      pattern: 'bg-linear-to-bl'
     }
   ]
 
   useEffect(() => {
+    if (!isVisible) return
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 4000) // Change slide every 4 seconds
 
     return () => clearInterval(interval)
+  }, [isVisible])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+
+    return () => observer.disconnect()
   }, [])
 
   return (
-    <div className="relative overflow-hidden">
+    <div ref={containerRef} className="relative overflow-hidden">
       {/* Background Slides */}
       <div className="absolute inset-0 transition-all duration-1000 ease-in-out">
         {slides.map((slide, index) => (
@@ -71,4 +89,4 @@ const BackgroundSlider: React.FC<BackgroundSliderProps> = ({ children }) => {
   )
 }
 
-export default BackgroundSlider
+export default React.memo(BackgroundSlider)

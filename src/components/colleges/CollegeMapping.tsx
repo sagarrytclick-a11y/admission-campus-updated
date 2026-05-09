@@ -199,13 +199,16 @@ const CollegeMapping = memo(({
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredColleges = useMemo(() => {
+    if (!colleges.length) return []
+    
     let filtered = colleges
 
-    // Filter by search term
-    if (searchTerm) {
+    // Filter by search term - optimized with early return
+    if (searchTerm && searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim()
       filtered = filtered.filter(college =>
-        college.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        college.city?.toLowerCase().includes(searchTerm.toLowerCase())
+        college.name?.toLowerCase().includes(searchLower) ||
+        college.city?.toLowerCase().includes(searchLower)
       )
     }
 
@@ -378,4 +381,4 @@ const CollegeMapping = memo(({
 
 CollegeMapping.displayName = 'CollegeMapping'
 
-export default CollegeMapping
+export default React.memo(CollegeMapping)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ArrowRight, CheckCircle2, Star, GraduationCap, Building2, BookOpen, Search, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useFormModal } from "@/context/FormModalContext";
@@ -20,24 +20,33 @@ interface SearchResult {
   [key: string]: any;
 }
 
-export default function Hero() {
+function Hero() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const { openModal } = useFormModal();
 
+  // Debounced search query
+  const debouncedSearchQuery = useMemo(() => {
+    const timer = setTimeout(() => searchQuery, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ["hero-search", searchQuery],
     queryFn: async () => {
       if (searchQuery.length < 2) return { results: [] };
-      const collegeRes = await fetch(`/api/colleges?search=${searchQuery}`);
-      const colleges = await collegeRes.json();
       
-      const courseRes = await fetch(`/api/courses?search=${searchQuery}`);
-      const courses = courseRes.ok ? await courseRes.json() : { data: [] };
+      // Use Promise.allSettled for parallel API calls
+      const [collegeRes, courseRes, examRes] = await Promise.allSettled([
+        fetch(`/api/colleges?search=${searchQuery}`),
+        fetch(`/api/courses?search=${searchQuery}`),
+        fetch(`/api/exams?search=${searchQuery}`)
+      ]);
       
-      const examRes = await fetch(`/api/exams?search=${searchQuery}`);
-      const exams = examRes.ok ? await examRes.json() : { data: [] };
+      const colleges = collegeRes.status === 'fulfilled' ? await collegeRes.value.json() : { data: [] };
+      const courses = courseRes.status === 'fulfilled' ? await courseRes.value.json() : { data: [] };
+      const exams = examRes.status === 'fulfilled' ? await examRes.value.json() : { data: [] };
       
       const allResults = [
         ...(colleges.data?.colleges || []).map((item: any) => ({ ...item, type: 'college' })),
@@ -47,6 +56,7 @@ export default function Hero() {
       return { results: allResults };
     },
     enabled: searchQuery.length >= 2,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
   });
 
   const searchResultsData = searchResults?.results || [];
@@ -238,3 +248,5 @@ export default function Hero() {
     </section>
   );
 }
+
+export default React.memo(Hero);
